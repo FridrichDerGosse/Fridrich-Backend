@@ -1,0 +1,1 @@
+fridex-connection>=0.0.1

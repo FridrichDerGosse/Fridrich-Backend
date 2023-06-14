@@ -1,4 +1,4 @@
-<!--- ATTENTION: This is a empty issue template
+<!--- ATTENTION: This is an empty issue template
 We recommend using a template --->
 
 
