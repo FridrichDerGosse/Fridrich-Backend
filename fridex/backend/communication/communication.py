@@ -10,7 +10,7 @@ Author: Lukas Krahbichler
 #                    Imports                     #
 ##################################################
 
-from fridex.connection import ClientConnection, DATAUNIT
+from fridex.connection import ClientConnection, DATAUNIT, ProtocolInterface
 
 
 ##################################################
@@ -51,4 +51,11 @@ class Communication(ClientConnection):
         :return: Reworked data
         """
         return data
+
+    @property
+    def protocol(self) -> ProtocolInterface:
+        """
+        :return: Protocol instance
+        """
+        return self._protocol
 

@@ -5,7 +5,4 @@ Project: Fridrich-Backend
 Created: 13.06.2023
 Author: Lukas Krahbichler
 """
-
-#                    Imports                     #
-
-#                     Code                       #
+from ._interface import Backend

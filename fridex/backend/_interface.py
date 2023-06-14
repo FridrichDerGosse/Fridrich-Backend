@@ -39,4 +39,17 @@ class Backend:
         self.__communication = None
 
         self.__connection = Connection()
-        self.__user = User()
+        self.__user = User(self.communication)
+
+    def communication(self) -> Communication | None:
+        """
+        :return: Communication instance if exists
+        """
+        return self.__communication
+
+    @property
+    def user(self) -> User:
+        """
+        :return: User SubInterface
+        """
+        return self.__user
