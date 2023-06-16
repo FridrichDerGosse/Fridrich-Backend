@@ -10,8 +10,6 @@ Author: Lukas Krahbichler
 #                    Imports                     #
 ##################################################
 
-from concurrent.futures import Future
-
 from .communication import Communication
 from .connection import Connection
 from .user import User
@@ -26,7 +24,6 @@ class Backend:
     Fridex-Backend
     """
     __communication: Communication | None
-    __communication_future: Future[Communication]
 
     __connection: Connection
     __user: User
@@ -35,10 +32,9 @@ class Backend:
         """
         Create Fridex-Backend
         """
-        self.__communication_future = Future()
         self.__communication = None
 
-        self.__connection = Connection()
+        self.__connection = Connection(self.communication)
         self.__user = User(self.communication)
 
     def communication(self) -> Communication | None:
@@ -46,6 +42,13 @@ class Backend:
         :return: Communication instance if exists
         """
         return self.__communication
+
+    def __set_communication(self, com: Communication | None) -> None:
+        """
+        Set/Unset communication once connected / disconnected
+        :param com: Communication or None
+        """
+        self.__communication = com
 
     @property
     def user(self) -> User:

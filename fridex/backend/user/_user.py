@@ -43,7 +43,7 @@ class User(SubInterface):
         """
         Register new user (set)
         :param name: Username
-        :param password: password of the user
+        :param password: Password of the user
         """
         self._data_request(("register",), "set", {"name": name, "password": password})
 

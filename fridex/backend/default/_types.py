@@ -20,7 +20,7 @@ from typing import TypedDict, Literal, Any, Tuple, Union
 SECTIONS = Literal["connection", "user", "voting"]
 REQ_TYPES = Literal["get", "sub", "set", "add", "del"]
 
-CONNECTION_PATHS = Tuple[Literal[""]]
+CONNECTION_PATHS = Tuple[Literal["login", "logout"]]
 USER_PATHS = Tuple[Literal["register", "password", "name", "double_votes", "permission_level"]]
 VOTING_PATHS = Tuple[Literal[""]]
 PATHS = Union[CONNECTION_PATHS, USER_PATHS, VOTING_PATHS]
