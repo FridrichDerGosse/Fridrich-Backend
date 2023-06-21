@@ -45,10 +45,10 @@ class Connection(SubInterface):
         :param name: Username
         :param password: Password
         """
-        self._data_request(("login",), "set", {"name": name, "password": password})
+        self._data_request("login", "set", {"name": name, "password": password})
 
     def logout(self) -> None:
-        self._data_request(("logout",), "set", {})
+        self._data_request("logout", "set", {})
 
     def connect(self, ip: str, port: int) -> None:
         """

@@ -49,7 +49,7 @@ class GetSubPattern:
         self._add_sub_callback = add_subscription_callback
         self._path = path
 
-    def get(self, params: DATAUNIT) -> Future[Any]:
+    def get(self, **params: DATAUNIT) -> Any:
         """
         Get value
         :param params: Request parameters
@@ -58,22 +58,33 @@ class GetSubPattern:
         """
         return self._data_request_callback(self._path, "get", params)
 
-    def subscribe(self, params: DATAUNIT, callback: Callable[[Any], Any]) -> int:
+    def subscribe(self, callback: Callable[[Any], Any], **params: Any) -> int:
         """
         Subscribe to value
-        :param params: Request parameters
         :param callback: Callback when value is updated
+        :param params: Request parameters
         :return: Subscription ID
         :raise CommunicationNotInitialized: If communication doesn't exist yet.
         """
         return self._add_sub_callback(self._path, "sub", params, callback)
 
 
+class NoParamsGetSubPattern(GetSubPattern):
+    """
+    GetSubPattern that takes no params
+    """
+    def get(self) -> Future[Any]:
+        return super().get()
+
+    def subscribe(self, callback: Callable[[Any], Any]) -> int:
+        return super().subscribe(callback)
+
+
 class GetSubSetPattern(GetSubPattern):
     """
     Default attribute pattern with get, subscribe and set
     """
-    def get(self, params: DATAUNIT) -> Future[Any]:
+    def set(self, **params: DATAUNIT) -> Future[Any]:
         """
         Set value
         :param params: Set-Request parameters
@@ -87,7 +98,7 @@ class AddDelGetSubPattern(GetSubPattern):
     """
     Default attribute pattern with add, del, get and subscribe
     """
-    def add(self, params: DATAUNIT) -> Future[Any]:
+    def add(self, **params: DATAUNIT) -> Future[Any]:
         """
         Add value
         :param params: Add-Request parameters
@@ -96,7 +107,7 @@ class AddDelGetSubPattern(GetSubPattern):
         """
         return self._data_request_callback(self._path, "add", params)
 
-    def delete(self, params: DATAUNIT) -> Future[Any]:
+    def delete(self, **params: DATAUNIT) -> Future[Any]:
         """
         Delete value
         :param params: Delete-Request parameters

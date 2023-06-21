@@ -10,7 +10,7 @@ Author: Lukas Krahbichler
 #                    Imports                     #
 ##################################################
 
-from typing import TypedDict, Literal, Any, Tuple, Union
+from typing import TypedDict, Literal, Union
 
 
 ##################################################
@@ -20,9 +20,9 @@ from typing import TypedDict, Literal, Any, Tuple, Union
 SECTIONS = Literal["connection", "user", "voting"]
 REQ_TYPES = Literal["get", "sub", "set", "add", "del"]
 
-CONNECTION_PATHS = Tuple[Literal["login", "logout"]]
-USER_PATHS = Tuple[Literal["register", "password", "name", "double_votes", "permission_level"]]
-VOTING_PATHS = Tuple[Literal[""]]
+CONNECTION_PATHS = Literal["login", "logout"]
+USER_PATHS = Literal["register", "password", "name", "double_votes", "permission_level", "information"]
+VOTING_PATHS = Literal["information"]
 PATHS = Union[CONNECTION_PATHS, USER_PATHS, VOTING_PATHS]
 
 
@@ -30,9 +30,9 @@ class DataRequest(TypedDict):
     section: SECTIONS
     type: REQ_TYPES
     path: PATHS
-    params: dict
+    params: dict[str | int | float | bool | None, any]
 
 
 class DataResponse(TypedDict):
-    section: SECTIONS
-    data: Any
+    path: PATHS
+    data: dict[str | int | float | bool | None, any]
