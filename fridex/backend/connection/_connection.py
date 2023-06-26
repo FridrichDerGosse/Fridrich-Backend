@@ -31,6 +31,7 @@ class Connection(SubInterface):
             communication: Callable[[], Communication | None],
             set_communication: Callable[[Communication | None], Any],
     ) -> None:
+        # noinspection GrazieInspection
         """
         Create connection interface
         :param communication: Communication callback
@@ -45,10 +46,10 @@ class Connection(SubInterface):
         :param name: Username
         :param password: Password
         """
-        self._data_request("login", "set", {"name": name, "password": password})
+        self._sub_worker.data_request("login", "set", {"name": name, "password": password})
 
     def logout(self) -> None:
-        self._data_request("logout", "set", {})
+        self._sub_worker.data_request("logout", "set", {})
 
     def connect(self, ip: str, port: int) -> None:
         """
@@ -62,5 +63,5 @@ class Connection(SubInterface):
         """
         Disconnect from server
         """
-        self._communication.close()
+        self._sub_worker.communication.close()
         self.__set_communication(None)

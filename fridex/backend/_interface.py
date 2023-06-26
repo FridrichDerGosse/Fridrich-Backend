@@ -34,11 +34,13 @@ class Backend:
         """
         self.__communication = None
 
-        self.__connection = Connection(self.communication)
+        self.__connection = Connection(self.communication, self.__set_communication)
         self.__user = User(self.communication)
 
     def communication(self) -> Communication | None:
         """
+        WARNING: You can quite mess up the connection
+        if you use some functions on your own
         :return: Communication instance if exists
         """
         return self.__communication
@@ -49,6 +51,13 @@ class Backend:
         :param com: Communication or None
         """
         self.__communication = com
+
+    @property
+    def connection(self) -> Connection:
+        """
+        :return: Connection SubInterface
+        """
+        return self.__connection
 
     @property
     def user(self) -> User:

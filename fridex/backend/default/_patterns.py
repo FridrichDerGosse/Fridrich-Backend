@@ -1,5 +1,5 @@
 """
-fridex/backend/default/_attribut_patterns.py
+fridex/backend/default/_patterns.py
 
 Project: Fridrich-Backend
 Created: 14.06.2023
@@ -10,55 +10,49 @@ Author: Lukas Krahbichler
 #                    Imports                     #
 ##################################################
 
-from fridex.connection import MessageDict, DATAUNIT
+from fridex.connection import DATAUNIT
 from concurrent.futures import Future
 from typing import Callable, Any
 
-from ._types import PATHS, REQ_TYPES
+from ..communication import PATHS, DATA
+
+from ._subinterface import SubWorker
 
 
 ##################################################
 #                     Code                       #
 ##################################################
 
-DATA_REQUEST_TYPE = Callable[[PATHS, REQ_TYPES, DATAUNIT], Future[MessageDict]]
-ADD_SUB_TYPE = Callable[[PATHS, REQ_TYPES, DATAUNIT, Callable[[Any], Any]], int]
-
 
 class GetSubPattern:
     """
     Default attribute pattern with get and subscribe
     """
-    _data_request_callback: DATA_REQUEST_TYPE
-    _add_sub_callback: ADD_SUB_TYPE
-    _path: PATHS
+    _sub_worker: SubWorker
+    _path: PATHS  # Should be set by the child class
 
     def __init__(
             self,
-            data_request_callback: DATA_REQUEST_TYPE,
-            add_subscription_callback: ADD_SUB_TYPE,
-            path: PATHS
+            sub_worker: SubWorker
     ) -> None:
         """
         Create default attribute pattern
-        :param data_request_callback: Data request callback
-        :param add_subscription_callback: Send add subscription request callback
-        :param path: Path of this attribute
+        :param sub_worker: Subscription SubWorker
         """
-        self._data_request_callback = data_request_callback
-        self._add_sub_callback = add_subscription_callback
-        self._path = path
+        self._sub_worker = sub_worker
 
-    def get(self, **params: DATAUNIT) -> Any:
+        self._sub_worker.add_pattern(self._path, self._rework_data)
+
+    def _get(self, **params: DATAUNIT) -> Future[Any]:
         """
         Get value
         :param params: Request parameters
         :return: Future to get result data
         :raise CommunicationNotInitialized: If communication doesn't exist yet.
         """
-        return self._data_request_callback(self._path, "get", params)
+        return self._sub_worker.data_request(self._path, "get", params)
 
-    def subscribe(self, callback: Callable[[Any], Any], **params: Any) -> int:
+    def _subscribe(self, callback: Callable[[Any], Any], **params: Any) -> int:
         """
         Subscribe to value
         :param callback: Callback when value is updated
@@ -66,53 +60,50 @@ class GetSubPattern:
         :return: Subscription ID
         :raise CommunicationNotInitialized: If communication doesn't exist yet.
         """
-        return self._add_sub_callback(self._path, "sub", params, callback)
+        return self._sub_worker.sub_request(self._path, "sub", params, callback)
 
-
-class NoParamsGetSubPattern(GetSubPattern):
-    """
-    GetSubPattern that takes no params
-    """
-    def get(self) -> Future[Any]:
-        return super().get()
-
-    def subscribe(self, callback: Callable[[Any], Any]) -> int:
-        return super().subscribe(callback)
+    def _rework_data(self, data: DATA) -> Any:
+        """
+        Rework received data.
+        Every subinterface should overwrite this
+        :param data: Data to rework
+        :return: Reworked data
+        """
+        ...
 
 
 class GetSubSetPattern(GetSubPattern):
     """
     Default attribute pattern with get, subscribe and set
     """
-    def set(self, **params: DATAUNIT) -> Future[Any]:
+    def _set(self, **params: DATAUNIT) -> Future[Any]:
         """
         Set value
         :param params: Set-Request parameters
         :return: Future to get result data
         :raise CommunicationNotInitialized: If communication doesn't exist yet.
         """
-        return self._data_request_callback(self._path, "get", params)
+        return self._sub_worker.data_request(self._path, "set", params)
 
 
 class AddDelGetSubPattern(GetSubPattern):
     """
     Default attribute pattern with add, del, get and subscribe
     """
-    def add(self, **params: DATAUNIT) -> Future[Any]:
+    def _add(self, **params: DATAUNIT) -> Future[Any]:
         """
         Add value
         :param params: Add-Request parameters
         :return: Future to get result data
         :raise CommunicationNotInitialized: If communication doesn't exist yet.
         """
-        return self._data_request_callback(self._path, "add", params)
+        return self._sub_worker.data_request(self._path, "add", params)
 
-    def delete(self, **params: DATAUNIT) -> Future[Any]:
+    def _delete(self, **params: DATAUNIT) -> Future[Any]:
         """
         Delete value
         :param params: Delete-Request parameters
         :return: Future to get result data
         :raise CommunicationNotInitialized: If communication doesn't exist yet.
         """
-        return self._data_request_callback(self._path, "del", params)
-
+        return self._sub_worker.data_request(self._path, "del", params)

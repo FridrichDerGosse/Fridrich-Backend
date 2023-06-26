@@ -11,9 +11,12 @@ Author: Lukas Krahbichler
 ##################################################
 
 from typing import Callable
+from hashlib import sha256
 
-from ..default import SubInterface, GetSubSetPattern, GetSubPattern
 from ..communication import Communication
+from ..default import SubInterface
+
+from ._patterns import InformationPattern, NamePattern, DoubleVotesPattern, CreationDatePattern
 
 
 ##################################################
@@ -24,10 +27,10 @@ class User(SubInterface):
     """
     User interface
     """
-    __information: GetSubPattern
-    __name: GetSubSetPattern
-    __double_votes: GetSubPattern
-    __permission_level: GetSubPattern
+    __information: InformationPattern
+    __name: NamePattern
+    __double_votes: DoubleVotesPattern
+    __creation_date: CreationDatePattern
 
     def __init__(self, communication: Callable[[], Communication | None]):
         """
@@ -36,10 +39,19 @@ class User(SubInterface):
         """
         super().__init__(communication, "user")
 
-        self.__information = GetSubPattern(self._data_request, self._sub_request, "information")
-        self.__name = GetSubSetPattern(self._data_request, self._sub_request, "name")
-        self.__double_votes = GetSubPattern(self._data_request, self._sub_request, "double_votes")
-        self.__permission_level = GetSubPattern(self._data_request, self._sub_request, "permission_level")
+        self.__information = InformationPattern(self._sub_worker)
+        self.__name = NamePattern(self._sub_worker)
+        self.__double_votes = DoubleVotesPattern(self._sub_worker)
+        self.__creation_date = CreationDatePattern(self._sub_worker)
+
+    @staticmethod
+    def __hash(value: str) -> str:
+        """
+        Password hashing
+        :param value: To hash
+        :return: Hashed
+        """
+        return sha256(value.encode("UTF-8")).hexdigest()
 
     def register(self, name: str, password: str) -> None:
         """
@@ -47,40 +59,45 @@ class User(SubInterface):
         :param name: Username
         :param password: Password of the user
         """
-        self._data_request("register", "set", {"name": name, "password": password})
+        self._sub_worker.data_request(
+            "register", "set",
+            {"name": name, "password": self.__hash(password)}
+        )
 
-    def password(self, old_password: str, new_password: str) -> None:
+    def change_password(self, old_password: str, new_password: str) -> None:
         """
         Change password (set)
         :param old_password: Old password to confirm access
         :param new_password: New password
         """
-        self._data_request("password", "set", {"old": old_password, "new": new_password})
+        self._sub_worker.data_request(
+            "password", "set",
+            {"old": self.__hash(old_password), "new": self.__hash(new_password)})
 
     @property
-    def information(self) -> GetSubPattern:
+    def information(self) -> InformationPattern:
         """
         :return: Information attribute
         """
         return self.__information
 
     @property
-    def name(self) -> GetSubSetPattern:
+    def name(self) -> NamePattern:
         """
         :return: Name attribute
         """
         return self.__name
 
     @property
-    def double_votes(self) -> GetSubPattern:
+    def double_votes(self) -> DoubleVotesPattern:
         """
         :return: DoubleVote attribute
         """
         return self.__double_votes
 
     @property
-    def permission_level(self) -> GetSubPattern:
+    def creation_date(self) -> CreationDatePattern:
         """
-        :return: PermissionLevel attribute
+        :return: CreationDate attribute
         """
-        return self.__permission_level
+        return self.__creation_date

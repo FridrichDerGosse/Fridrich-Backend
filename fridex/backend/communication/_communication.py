@@ -10,7 +10,10 @@ Author: Lukas Krahbichler
 #                    Imports                     #
 ##################################################
 
-from fridex.connection import ClientConnection, DATAUNIT, ProtocolInterface
+from fridex.connection import ClientConnection, ProtocolInterface, DATAUNIT
+from typing import Any, Callable, Tuple
+
+from ._types import DataResponse, SECTIONS, PATHS, DATA
 
 
 ##################################################
@@ -21,6 +24,7 @@ class Communication(ClientConnection):
     """
     Communication to server
     """
+    __patterns: dict[Tuple[SECTIONS, PATHS], Callable[[DATA], Any]]
 
     def __init__(
             self,
@@ -35,6 +39,7 @@ class Communication(ClientConnection):
         super().__init__(ip=ip, port=port,
                          request_callback=self.__request_data,
                          rework_callback=self.__rework_data)
+        self.__patterns = {}
 
     def __request_data(self, _req: DATAUNIT) -> DATAUNIT:  # noqa
         """
@@ -44,13 +49,22 @@ class Communication(ClientConnection):
         """
         return {}
 
-    def __rework_data(self, data: DATAUNIT) -> DATAUNIT:  # noqa - TEMP
+    def __rework_data(self, data: DataResponse) -> Any:
         """
         Rework received data, before passing it to futures or subscriptions
         :param data: Data to rework
         :return: Reworked data
         """
-        return data
+        return self.__patterns[data["section"], data["path"]](data["data"])
+
+    def add_pattern(self, section: SECTIONS, path: PATHS, rework: Callable[[DATA], Any]) -> None:
+        """
+        Add a rework callback for a pattern
+        :param section: Section of the subinterface
+        :param path: Path of the pattern
+        :param rework: Callback to rework received response data
+        """
+        self.__patterns[section, path] = rework
 
     @property
     def protocol(self) -> ProtocolInterface:
